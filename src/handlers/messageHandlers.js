@@ -1,5 +1,5 @@
 const whatsapp = require('../whatsapp');
-const gpt = require('../gpt');
+const gpt = require('../agentLlm/gpt');
 
 const bot_name = '<BOT>';
 
@@ -16,11 +16,14 @@ async function start(client) {
     }
 
     if (command === '!bot') {
+      const agentPrompt = "You are a helpful assistant. Respond concisely and clearly and with emojis when appropriate.";
       const userPrompt = messageText.replace('!bot', '').trim();
+      const userName = message.from;
 
       try {
         const botResponse = await gpt.callMistralResponse(
-          "You are a helpful assistant. Respond concisely and clearly and with emojis when appropriate.",
+          userName,
+          agentPrompt,
           userPrompt
         )
 
