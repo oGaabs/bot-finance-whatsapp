@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/oGaabs/bot-finance-whatsapp#readme",
   "dependencies": {
+    "openai": "^5.12.2",
     "qrcode-terminal": "^0.12.0",
     "whatsapp-web.js": "^1.32.0"
   },
