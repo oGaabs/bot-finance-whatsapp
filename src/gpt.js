@@ -11,8 +11,12 @@ function addToMemory(role, content) {
     conversationHistory = conversationHistory.slice(-MAX_MEMORY);
   }
 }
-function getMemory() {
-  return [...conversationHistory]
+
+function getAgentMemory(systemPrompt) {
+  return [
+    { role: "system", content: systemPrompt },
+    ...conversationHistory,
+  ];
 }
 
 async function callMistralResponse(systemPrompt, userPrompt, model = MODEL_MISTRAL, maxTokens = 10000) {
@@ -21,12 +25,13 @@ async function callMistralResponse(systemPrompt, userPrompt, model = MODEL_MISTR
     apiKey: process.env.OPENROUTER_TOKEN,
   });
 
-  addToMemory("system", systemPrompt);
   addToMemory("user", userPrompt);
 
+  const messages = getAgentMemory(systemPrompt);
+
   const completion = await client.chat.completions.create({
-    model: model,
-    messages: getMemory(),
+    model,
+    messages,
     temperature: 0.7,
     max_tokens: maxTokens,
   });
@@ -41,5 +46,5 @@ async function callMistralResponse(systemPrompt, userPrompt, model = MODEL_MISTR
 module.exports = {
   callMistralResponse,
   addToMemory,
-  getMemory,
+  getAgentMemory,
 };

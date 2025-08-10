@@ -29,7 +29,6 @@ async function start(client) {
         whatsapp.sendMessage(message, `${bot_name} Sorry, I encountered an error while processing your request.`);
 
         console.error("Error calling Mistral API:", err);
-        throw err;
       }
     }
   });
