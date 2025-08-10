@@ -1,4 +1,4 @@
-import { storeVariable } from './memory.js';
+import { storeVariable } from './memory.js'
 
 // Schema passed to the OpenAI / OpenRouter API
 const toolSchema = [
@@ -27,28 +27,28 @@ const toolSchema = [
       },
     },
   },
-];
+]
 
 function safeJsonParse(str) {
-  try { return JSON.parse(str); } catch { return {}; }
+  try { return JSON.parse(str) } catch { return {} }
 }
 
 // Executes a single tool call and returns the tool response message object.
 function executeTool(toolCall) {
-  if (!toolCall || !toolCall.function) return null;
-  const { id, function: fn } = toolCall;
-  const name = fn.name;
-  const rawArgs = fn.arguments || '{}';
-  const args = safeJsonParse(rawArgs);
+  if (!toolCall || !toolCall.function) return null
+  const { id, function: fn } = toolCall
+  const name = fn.name
+  const rawArgs = fn.arguments || '{}'
+  const args = safeJsonParse(rawArgs)
 
   if (name === 'store_variable') {
-    const result = storeVariable(args.name, args.value);
+    const result = storeVariable(args.name, args.value)
     return {
       role: 'tool',
       tool_call_id: id,
       name,
       content: JSON.stringify(result),
-    };
+    }
   }
 
   return {
@@ -56,8 +56,8 @@ function executeTool(toolCall) {
     tool_call_id: id,
     name,
     content: JSON.stringify({ error: 'Ferramenta não implementada.' }),
-  };
+  }
 }
 
-export { executeTool, toolSchema };
+export { executeTool, toolSchema }
 

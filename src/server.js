@@ -1,18 +1,18 @@
-import * as messageHandler from './handlers/messageHandlers.js';
-import * as whatsapp from './whatsapp.js';
+import * as messageHandler from './handlers/messageHandlers.js'
+import * as whatsapp from './whatsapp.js'
 
-const client = whatsapp.getClient();
-client.initialize();
+const client = whatsapp.getClient()
+client.initialize()
 
 // Start event handlers
-messageHandler.start(client);
+messageHandler.start(client)
 
 client.on("ready", () => {
-  console.log("> Connected to WhatsApp!");
+  console.log("> Connected to WhatsApp!")
 })
 
 process.on('SIGINT', async () => {
-  console.info('SIGINT recebido — encerrando...');
+  console.info('SIGINT recebido — encerrando...')
 
-  process.exit(0);
-});
+  process.exit(0)
+})
