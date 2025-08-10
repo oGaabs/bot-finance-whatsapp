@@ -2,7 +2,6 @@ const { Client, LocalAuth } = require("whatsapp-web.js");
 const qrcode = require("qrcode-terminal");
 
 let client = null;
-let phoneNumber = null;
 
 async function sendMessage(message, replyText) {
   const chat = await message.getChat();
@@ -22,9 +21,8 @@ async function sendMessage(message, replyText) {
   await client.sendMessage(rawNumber, replyText);
 }
 
-function startWhatsApp(inputPhoneNumber) {
-  phoneNumber = inputPhoneNumber;
-  console.log(`> Iniciando WhatsApp com o número: ${phoneNumber}`);
+function startWhatsApp() {
+  console.log(`> Iniciando WhatsApp bot...`);
 
   // Configura o cliente com autenticação local
   client = new Client({
@@ -39,11 +37,12 @@ function startWhatsApp(inputPhoneNumber) {
   });
 
   client.on('message_create', message => {
-    const messageText = message.body;
+    const messageText = message.body.trim();
 
     if (!message.fromMe) return;
+    if (messageText.startsWith('<BOT>')) return; // Ignore messages sent by the bot itself
     if (messageText === '!ping') {
-      sendMessage(message, 'pong');
+      sendMessage(message, '<BOT> pong');
     }
   });
 
