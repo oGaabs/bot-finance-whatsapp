@@ -1,7 +1,7 @@
-const { addToMemory, getAgentMemory, storeVariable } = require('./memory');
-const OpenAI = require("openai");
+import OpenAI from 'openai';
+import { addToMemory, getAgentMemory, storeVariable } from './memory.js';
 
-const MODEL_MISTRAL = "mistralai/mistral-small-3.2-24b-instruct:free";
+const MODEL_MISTRAL = "openai/gpt-5-nano";
 
 // Supported enforced patterns only:
 // tool_call:store_variable({"name":"salario","value":1500})
@@ -112,6 +112,4 @@ async function callMistralResponse(_user, systemPrompt, userPrompt, model = MODE
   return firstContent;
 }
 
-module.exports = {
-  callMistralResponse,
-};
+export { callMistralResponse };

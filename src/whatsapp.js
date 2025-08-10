@@ -1,5 +1,7 @@
-const { Client, LocalAuth } = require("whatsapp-web.js");
-const qrcode = require("qrcode-terminal");
+import qrcode from 'qrcode-terminal';
+import whatsappWebPkg from 'whatsapp-web.js';
+
+const { Client, LocalAuth } = whatsappWebPkg;
 
 let client = null;
 
@@ -37,7 +39,5 @@ async function sendMessage(message, replyText) {
   await client.sendMessage(rawNumberTo, replyText);
 }
 
-module.exports = {
-  getClient,
-  sendMessage,
-};
+export { getClient, sendMessage };
+

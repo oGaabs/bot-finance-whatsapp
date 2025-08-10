@@ -1,5 +1,5 @@
-const whatsapp = require('../whatsapp');
-const gpt = require('../agentLlm/gpt');
+import * as gpt from '../agentLlm/gpt.js';
+import * as whatsapp from '../whatsapp.js';
 
 const bot_name = '<BOT>';
 
@@ -37,6 +37,4 @@ async function start(client) {
   });
 };
 
-module.exports = {
-  start
-}
+export { start };

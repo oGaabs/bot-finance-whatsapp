@@ -1,4 +1,4 @@
-const { storeVariable } = require('./memory');
+import { storeVariable } from './memory.js';
 
 // Schema passed to the OpenAI / OpenRouter API
 const toolSchema = [
@@ -59,7 +59,5 @@ function executeTool(toolCall) {
   };
 }
 
-module.exports = {
-  toolSchema,
-  executeTool,
-};
+export { executeTool, toolSchema };
+

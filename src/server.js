@@ -1,5 +1,5 @@
-const whatsapp = require('./whatsapp');
-const messageHandler = require('./handlers/messageHandlers');
+import * as messageHandler from './handlers/messageHandlers.js';
+import * as whatsapp from './whatsapp.js';
 
 const client = whatsapp.getClient();
 client.initialize();
