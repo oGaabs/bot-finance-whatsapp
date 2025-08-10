@@ -1,9 +1,7 @@
-import * as gpt from '../agentLlm/gpt.js'
+import { BOT_NAME as bot_name, processBotCommand } from '../services/agent_chatbot.js'
 import { getLogger } from '../utils/logger.js'
 import * as whatsapp from '../whatsapp.js'
 const logger = getLogger('messageHandlers')
-
-const bot_name = '<BOT>'
 
 async function start(client) {
   client.on('message_create', async message => {
@@ -18,23 +16,8 @@ async function start(client) {
     }
 
     if (command === '!bot') {
-      const agentPrompt = "You are a helpful assistant. Respond concisely and clearly and with emojis when appropriate."
-      const userPrompt = messageText.replace('!bot', '').trim()
-      const userName = message.from
-
-      try {
-        const botResponse = await gpt.callMistralResponse(
-          userName,
-          agentPrompt,
-          userPrompt
-        )
-
-        whatsapp.sendMessage(message, `${bot_name} ${botResponse}`)
-      } catch (err) {
-        whatsapp.sendMessage(message, `${bot_name} Sorry, I encountered an error while processing your request.`)
-
-        logger.error({ err }, 'Error calling Mistral API')
-      }
+      logger.info({ from: message.from }, 'Processando comando !bot')
+      await processBotCommand(client, message)
     }
   })
 };

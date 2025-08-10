@@ -5,30 +5,52 @@ import pino from 'pino'
 // Root directory for logs (override with LOG_ROOT)
 const root = process.env.LOG_ROOT ? path.resolve(process.env.LOG_ROOT) : process.cwd()
 
-// Timestamped folder for this run
-const ts = new Date().toISOString().replace(/[:T]/g, '-').split('.')[0]
-const baseDir = path.resolve(root, `logs_${ts}`)
-const threadsDir = path.join(baseDir, 'threads')
-const errorsDir = path.join(baseDir, 'error')
-const globalFile = path.join(baseDir, 'global.log')
+// Internal mutable state to allow daily rotation
+const state = {
+  date: '',          // YYYY-MM-DD
+  ts: '',            // full timestamp used in folder name
+  baseDir: '',
+  threadsDir: '',
+  errorsDir: '',
+  globalFile: ''
+}
 
-for (const dir of [baseDir, threadsDir, errorsDir]) {
+function ensureDir(dir) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
 }
 
-// Create base pino instance with pretty transport for console (non-production).
+
+function rotateIfNeeded() {
+  const currentDate = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
+  if (currentDate === state.date) return
+  state.date = currentDate
+  state.ts = new Date().toISOString().replace(/[:T]/g, '-').split('.')[0]
+  state.baseDir = path.resolve(root, `logs_${state.ts}`)
+  state.threadsDir = path.join(state.baseDir, 'threads')
+  state.errorsDir = path.join(state.baseDir, 'error')
+  state.globalFile = path.join(state.baseDir, 'global.log')
+  ensureDir(state.baseDir)
+  ensureDir(state.threadsDir)
+  ensureDir(state.errorsDir)
+}
+
+// Initialize on first load
+rotateIfNeeded()
+
+// Create base pino instance with pretty transport for console (non-production). Fallback gracefully if pino-pretty absent.
 const level = process.env.LOG_LEVEL || 'info'
-const prettyTransport = process.env.NODE_ENV !== 'production'
-  ? pino.transport({
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-      translateTime: 'HH:MM:ss',
-      ignore: 'pid,hostname'
-    }
-  })
-  : undefined
-const base = pino({ level, timestamp: pino.stdTimeFunctions.isoTime }, prettyTransport)
+let transport = null
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    transport = pino.transport({
+      target: 'pino-pretty',
+      options: { colorize: true, translateTime: 'HH:MM:ss', ignore: 'pid,hostname' }
+    })
+  } catch {
+    // Ignore pretty errors; continue without pretty
+  }
+}
+const base = pino({ level, timestamp: pino.stdTimeFunctions.isoTime }, transport || undefined)
 
 // Utility: append a JSON line to a file
 function appendLine(filePath, line) {
@@ -61,9 +83,10 @@ function parseArgs(args) {
 // Factory for module-specific logger
 export function getLogger(moduleName = 'app') {
   const cleanName = path.basename(moduleName).replace(/\.[cm]?js$/, '')
-  const threadFile = path.join(threadsDir, `${cleanName}.log`)
 
   function write(levelName, args) {
+    rotateIfNeeded() // rotate folder if date changed
+    const threadFile = path.join(state.threadsDir, `${cleanName}.log`)
     const { msg, obj } = parseArgs(args)
     const record = {
       time: new Date().toISOString(),
@@ -74,9 +97,9 @@ export function getLogger(moduleName = 'app') {
     }
     const line = JSON.stringify(record)
     appendLine(threadFile, line)
-    appendLine(globalFile, line) // aggregate
+    appendLine(state.globalFile, line) // aggregate
     if (levelName === 'error') {
-      appendLine(path.join(errorsDir, `${cleanName}.error.log`), line)
+      appendLine(path.join(state.errorsDir, `${cleanName}.error.log`), line)
     }
     // Emit via base pino (structured); ensure msg last for pretty printers
     base[levelName] ? base[levelName]({ module: cleanName, ...obj }, msg) : base.info({ module: cleanName, ...obj }, msg)
