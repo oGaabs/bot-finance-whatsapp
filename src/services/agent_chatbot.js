@@ -14,6 +14,7 @@ export async function processBotCommand(client, message) {
 
   if (!userPrompt) {
     await whatsapp.sendMessage(message, `${BOT_NAME} Por favor adicione uma pergunta após !bot`)
+
     return
   }
 
@@ -23,6 +24,7 @@ export async function processBotCommand(client, message) {
       DEFAULT_SYSTEM_PROMPT,
       userPrompt
     )
+
     await whatsapp.sendMessage(message, `${BOT_NAME} ${botResponse}`)
   } catch (err) {
     logger.error({ err }, 'Erro ao chamar modelo GPT')

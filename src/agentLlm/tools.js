@@ -35,7 +35,8 @@ function safeJsonParse(str) {
 
 // Executes a single tool call and returns the tool response message object.
 function executeTool(toolCall) {
-  if (!toolCall || !toolCall.function) return null
+  if (!toolCall || !toolCall.function)
+    return null
   const { id, function: fn } = toolCall
   const name = fn.name
   const rawArgs = fn.arguments || '{}'
@@ -43,6 +44,7 @@ function executeTool(toolCall) {
 
   if (name === 'store_variable') {
     const result = storeVariable(args.name, args.value)
+
     return {
       role: 'tool',
       tool_call_id: id,

@@ -11,6 +11,7 @@ export function addToMemory(role, content) {
 }
 export function storeVariable(name, value) {
   userVariables[name] = value
+
   return { success: true, stored: { name, value } }
 }
 
@@ -22,6 +23,7 @@ export function getAgentMemory(systemPrompt) {
   const varsSummary = Object.keys(userVariables).length
     ? `\n\nUser stored variables (JSON): ${JSON.stringify(userVariables)}`
     : ""
+
   return [
     { role: "system", content: systemPrompt + varsSummary },
     ...conversationHistory,

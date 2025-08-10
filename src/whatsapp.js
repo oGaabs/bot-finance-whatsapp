@@ -31,6 +31,7 @@ async function sendMessage(message, replyText) {
     logger.info({ group: chat.name, from: formatUser, body: message.body }, 'Mensagem de grupo recebida')
     logger.info({ group: chat.name, to: formatUser, reply: replyText }, 'Enviando resposta para grupo')
     await chat.sendMessage(replyText)
+
     return
   }
 
@@ -40,5 +41,22 @@ async function sendMessage(message, replyText) {
   await client.sendMessage(rawNumberTo, replyText)
 }
 
-export { getClient, sendMessage }
+// Envia mensagem direta sem precisar do objeto message original (usado por reminders / scheduler)
+async function sendRaw(to, text) {
+  if (!client)
+    throw new Error('Cliente WhatsApp não inicializado')
+
+  if (!to.endsWith('@g.us')) {
+    to += '@c.us'
+  }
+
+  try {
+    logger.info({ to, text }, 'Enviando mensagem (raw)')
+    await client.sendMessage(to, text)
+  } catch (err) {
+    logger.error({ err, to }, 'Falha ao enviar mensagem raw')
+  }
+}
+
+export { getClient, sendMessage, sendRaw }
 

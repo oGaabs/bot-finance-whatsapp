@@ -9,25 +9,39 @@ const MODEL_MISTRAL = "openai/gpt-5-nano"
 // tool_call:store_variable({"name":"salario","value":1500})
 // tool_call:store_variable(name=salario,value=1500)
 function parseInlineToolCalls(content) {
-  if (!content) return []
+  if (!content)
+    return []
   const results = []
 
   const lines = content.split(/\n|\r/).map(l => l.trim()).filter(Boolean)
+
   for (const line of lines) {
-    if (!line.toLowerCase().startsWith('tool_call:')) continue
+    if (!line.toLowerCase().startsWith('tool_call:'))
+      continue
+
     const match = /^tool_call:([a-zA-Z0-9_]+)\((.*)\)$/.exec(line)
-    if (!match) continue
+
+    if (!match) 
+      continue
+
     const fnName = match[1]
     const inside = match[2].trim()
     let argsObj = {}
+
     if (inside.startsWith('{')) {
       try { argsObj = JSON.parse(inside) } catch { argsObj = {} }
     } else if (inside.length) {
       inside.split(',').forEach(pair => {
         const [k, vRaw] = pair.split('=').map(s => s && s.trim())
-        if (!k) return
+
+        if (!k) 
+          return
+
         let v = vRaw
-        if (!isNaN(Number(vRaw))) v = Number(vRaw)
+
+        if (!isNaN(Number(vRaw)))
+          v = Number(vRaw)
+
         else if ((vRaw || '').startsWith('[') && (vRaw || '').endsWith(']')) {
           try { v = JSON.parse(vRaw) } catch { /* ignore */ }
         }
@@ -36,6 +50,7 @@ function parseInlineToolCalls(content) {
     }
     results.push({ name: fnName, args: argsObj, raw: line })
   }
+
   return results
 }
 
@@ -43,12 +58,16 @@ function parseInlineToolCalls(content) {
 // Returns true if at least one tool call was processed.
 function processInlineToolCalls(assistantContent, messages) {
   const calls = parseInlineToolCalls(assistantContent)
-  if (!calls.length) return false
+
+  if (!calls.length)
+    return false
 
   const summaries = []
+
   for (const c of calls) {
     if (c.name === 'store_variable') {
       const { name, value } = c.args || {}
+
       if (name !== undefined && value !== undefined) {
         storeVariable(name, value)
         summaries.push(`OK ${name}`)
@@ -65,6 +84,7 @@ function processInlineToolCalls(assistantContent, messages) {
 
   // Adicionar um resumo técnico como system para próxima rodada
   messages.push({ role: 'system', content: `RESULTADO_TOOL_CALLS: ${summaries.join('; ')}` })
+
   return true
 }
 
@@ -105,14 +125,17 @@ async function callMistralResponse(_user, systemPrompt, userPrompt, model = MODE
       max_tokens: maxTokens,
     })
     const secondContent = second.choices[0].message.content || ""
+
     addToMemory('assistant', secondContent)
     logger.info('Resposta final após tool calls')
+
     return secondContent
   }
 
   // Caso sem tool calls, tratamos a primeira saída como resposta final
   addToMemory('assistant', firstContent)
   logger.info('Resposta sem tool calls')
+
   return firstContent
 }
 

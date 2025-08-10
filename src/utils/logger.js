@@ -16,13 +16,16 @@ const state = {
 }
 
 function ensureDir(dir) {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+  if (!fs.existsSync(dir))
+    fs.mkdirSync(dir, { recursive: true })
 }
 
 
 function rotateIfNeeded() {
   const currentDate = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
-  if (currentDate === state.date) return
+
+  if (currentDate === state.date) 
+    return
   state.date = currentDate
   state.ts = new Date().toISOString().replace(/[:T]/g, '-').split('.')[0]
   state.baseDir = path.resolve(root, `logs_${state.ts}`)
@@ -40,6 +43,7 @@ rotateIfNeeded()
 // Create base pino instance with pretty transport for console (non-production). Fallback gracefully if pino-pretty absent.
 const level = process.env.LOG_LEVEL || 'info'
 let transport = null
+
 if (process.env.NODE_ENV !== 'production') {
   try {
     transport = pino.transport({
@@ -61,12 +65,16 @@ function parseArgs(args) {
   // Supports: (msg), (msg,obj), (obj), (obj,msg)
   let msg = ''
   let obj = {}
+
   if (args.length === 1) {
-    if (typeof args[0] === 'string') msg = args[0]
-    else obj = args[0] || {}
+    if (typeof args[0] === 'string')
+      msg = args[0]
+    else
+      obj = args[0] || {}
   } else if (args.length >= 2) {
     const a = args[0]
     const b = args[1]
+
     if (typeof a === 'string' && typeof b === 'object') {
       msg = a; obj = b || {}
     } else if (typeof b === 'string' && typeof a === 'object') {
@@ -77,6 +85,7 @@ function parseArgs(args) {
       msg = b; obj = a || {}
     }
   }
+
   return { msg, obj }
 }
 
@@ -96,6 +105,7 @@ export function getLogger(moduleName = 'app') {
       msg
     }
     const line = JSON.stringify(record)
+
     appendLine(threadFile, line)
     appendLine(state.globalFile, line) // aggregate
     if (levelName === 'error') {
