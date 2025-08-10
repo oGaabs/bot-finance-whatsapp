@@ -1,3 +1,7 @@
+# Whatsapp Auth
+.wwebjs_*
+
+
 # Logs
 logs
 *.log
