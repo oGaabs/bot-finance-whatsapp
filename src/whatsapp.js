@@ -3,54 +3,41 @@ const qrcode = require("qrcode-terminal");
 
 let client = null;
 
+function getClient() {
+  if (!client) {
+    console.log(`> Criando novo cliente WhatsApp...`);
+    client = new Client({
+      authStrategy: new LocalAuth(),
+      puppeteer: { headless: true, args: ["--no-sandbox"] },
+    });
+
+    console.log(`> Cliente WhatsApp criado! Verificando QR Code...`);
+    client.on("qr", (qr) => qrcode.generate(qr, { small: true }));   // When the client received QR-Code
+  }
+
+  return client;
+}
 async function sendMessage(message, replyText) {
   const chat = await message.getChat();
   const rawNumber = message.from;
 
-  if (chat.isGroup) {
-    console.log(`[GRUPO] Mensagem no grupo "${chat.name}"\n "${message.author}": ${message.body}`);
+  const formatUser = `${message.rawData.notifyName} (${rawNumber})`;
 
-    console.log(`[GRUPO] Enviando resposta para o grupo "${chat.name}": ${replyText}`);
+  if (chat.isGroup) {
+    console.log(`[GRUPO] Mensagem no grupo "${chat.name}"\n "${formatUser}": ${message.body}`);
+
+    console.log(`[GRUPO] Enviando resposta para o grupo "${chat.name} para ${formatUser}": ${replyText}`);
     await chat.sendMessage(replyText);
     return;
   }
 
   console.log(`[CHAT] Mensagem de "${rawNumber}": ${message.body}`);
-  console.log(`[REPLY-${rawNumber}] Enviando resposta para "${rawNumber}": ${replyText}`);
+  console.log(`[REPLY-${formatUser}] Enviando resposta": ${replyText}`);
 
   await client.sendMessage(rawNumber, replyText);
 }
 
-function startWhatsApp() {
-  console.log(`> Iniciando WhatsApp bot...`);
-
-  // Configura o cliente com autenticação local
-  client = new Client({
-    authStrategy: new LocalAuth(),
-    puppeteer: { headless: true, args: ["--no-sandbox"] },
-  });
-
-
-  client.on("qr", (qr) => qrcode.generate(qr, { small: true }));   // When the client received QR-Code
-  client.on("ready", () => {
-    console.log("> Connected to WhatsApp!");
-  });
-
-  client.on('message_create', message => {
-    const messageText = message.body.trim();
-
-    if (!message.fromMe) return;
-    if (messageText.startsWith('<BOT>')) return; // Ignore messages sent by the bot itself
-    if (messageText === '!ping') {
-      sendMessage(message, '<BOT> pong');
-    }
-  });
-
-
-  client.initialize();
-}
-
 module.exports = {
-  startWhatsApp,
-  getClient: () => client,
+  getClient,
+  sendMessage,
 };
