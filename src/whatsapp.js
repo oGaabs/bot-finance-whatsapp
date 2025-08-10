@@ -19,9 +19,9 @@ function getClient() {
 }
 async function sendMessage(message, replyText) {
   const chat = await message.getChat();
-  const rawNumber = message.from;
+  const rawNumberTo = message.to;
 
-  const formatUser = `${message.rawData.notifyName} (${rawNumber})`;
+  const formatUser = `${message.rawData.notifyName} (${rawNumberTo})`;
 
   if (chat.isGroup) {
     console.log(`[GRUPO] Mensagem no grupo "${chat.name}"\n "${formatUser}": ${message.body}`);
@@ -31,10 +31,10 @@ async function sendMessage(message, replyText) {
     return;
   }
 
-  console.log(`[CHAT] Mensagem de "${rawNumber}": ${message.body}`);
+  console.log(`[CHAT] Mensagem de "${rawNumberTo}": ${message.body}`);
   console.log(`[REPLY-${formatUser}] Enviando resposta": ${replyText}`);
 
-  await client.sendMessage(rawNumber, replyText);
+  await client.sendMessage(rawNumberTo, replyText);
 }
 
 module.exports = {
