@@ -32,6 +32,7 @@ async function sendMessage(message, replyText) {
   if (chat.isGroup) {
     logger.info({ group: chat.name, from: formatUser, body: message.body }, 'Mensagem de grupo recebida')
     const formatted = formatOutgoingMessage(replyText, { context: 'group', chatName: chat.name })
+
     logger.info({ group: chat.name, to: formatUser, reply: formatted }, 'Enviando resposta para grupo')
     await chat.sendMessage(formatted)
 
@@ -40,6 +41,7 @@ async function sendMessage(message, replyText) {
 
   logger.info({ to: rawNumberTo, body: message.body }, 'Mensagem direta recebida')
   const formatted = formatOutgoingMessage(replyText, { context: 'direct' })
+
   logger.info({ to: rawNumberTo, reply: formatted }, 'Enviando resposta direta')
 
   await client.sendMessage(rawNumberTo, formatted)
@@ -56,6 +58,7 @@ async function sendRaw(to, text) {
 
   try {
     const formatted = formatOutgoingMessage(text, { context: to.endsWith('@g.us') ? 'group' : 'direct' })
+
     logger.info({ to, text: formatted }, 'Enviando mensagem (raw)')
     await client.sendMessage(to, formatted)
   } catch (err) {
@@ -78,6 +81,7 @@ function formatOutgoingMessage(text, { context = 'direct', chatName } = {}) {
   // Prefixo contextual
   if (context === 'group') {
     const header = chatName ? `*🤖 Assistant* · ${chatName}` : '*🤖 Assistant*'
+
     out = header + '\n' + out
   }
 

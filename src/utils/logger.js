@@ -24,7 +24,7 @@ function ensureDir(dir) {
 function rotateIfNeeded() {
   const currentDate = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
 
-  if (currentDate === state.date) 
+  if (currentDate === state.date)
     return
   state.date = currentDate
   state.ts = new Date().toISOString().replace(/[:T]/g, '-').split('.')[0]
@@ -89,6 +89,61 @@ function parseArgs(args) {
   return { msg, obj }
 }
 
+// ================= Stack Trace Helpers ================= //
+function parseStack(stack) {
+  if (!stack || typeof stack !== 'string')
+    return []
+  const lines = stack.split('\n').slice(1) // skip error message line
+  const frames = []
+  const re = /^\s*at\s+(?:(.*?)\s+\()?(.*?):(\d+):(\d+)\)?$/
+
+  for (const l of lines) {
+    const m = l.match(re)
+
+    if (!m) 
+      continue
+    const [, fn, file, line, col] = m
+
+    frames.push({ fn: fn || null, file, line: Number(line), col: Number(col) })
+    if (frames.length >= 30) 
+      break
+  }
+
+  return frames
+}
+
+function enrichErrors(obj) {
+  if (!obj || typeof obj !== 'object') 
+    return obj
+  const clone = { ...obj }
+  const keys = Object.keys(clone)
+
+  for (const k of keys) {
+    const val = clone[k]
+
+    if (val && typeof val === 'object' && (val instanceof Error || (val.stack && typeof val.stack === 'string'))) {
+      const baseInfo = {
+        name: val.name,
+        message: val.message,
+        stack: val.stack,
+        stackTree: parseStack(val.stack)
+      }
+
+      // Preserve enumerable props
+      for (const pk of Object.keys(val)) {
+        if (!(pk in baseInfo)) 
+          baseInfo[pk] = val[pk]
+      }
+      clone[k] = baseInfo
+      // Atalho global se só houver um erro principal
+      if (!clone.stackTree) 
+        clone.stackTree = baseInfo.stackTree
+    }
+  }
+
+  return clone
+}
+
 // Factory for module-specific logger
 export function getLogger(moduleName = 'app') {
   const cleanName = path.basename(moduleName).replace(/\.[cm]?js$/, '')
@@ -97,11 +152,12 @@ export function getLogger(moduleName = 'app') {
     rotateIfNeeded() // rotate folder if date changed
     const threadFile = path.join(state.threadsDir, `${cleanName}.log`)
     const { msg, obj } = parseArgs(args)
+    const enriched = levelName === 'error' ? enrichErrors(obj) : obj
     const record = {
       time: new Date().toISOString(),
       level: levelName,
       module: cleanName,
-      ...obj,
+      ...enriched,
       msg
     }
     const line = JSON.stringify(record)
