@@ -1,5 +1,7 @@
 import OpenAI from 'openai'
+import { getLogger } from '../utils/logger.js'
 import { addToMemory, getAgentMemory, storeVariable } from './memory.js'
+const logger = getLogger('gpt')
 
 const MODEL_MISTRAL = "openai/gpt-5-nano"
 
@@ -104,12 +106,15 @@ async function callMistralResponse(_user, systemPrompt, userPrompt, model = MODE
     })
     const secondContent = second.choices[0].message.content || ""
     addToMemory('assistant', secondContent)
+    logger.info('Resposta final após tool calls')
     return secondContent
   }
 
   // Caso sem tool calls, tratamos a primeira saída como resposta final
   addToMemory('assistant', firstContent)
+  logger.info('Resposta sem tool calls')
   return firstContent
 }
 
 export { callMistralResponse }
+

@@ -1,5 +1,7 @@
 import * as gpt from '../agentLlm/gpt.js'
+import { getLogger } from '../utils/logger.js'
 import * as whatsapp from '../whatsapp.js'
+const logger = getLogger('messageHandlers')
 
 const bot_name = '<BOT>'
 
@@ -31,10 +33,11 @@ async function start(client) {
       } catch (err) {
         whatsapp.sendMessage(message, `${bot_name} Sorry, I encountered an error while processing your request.`)
 
-        console.error("Error calling Mistral API:", err)
+        logger.error({ err }, 'Error calling Mistral API')
       }
     }
   })
 };
 
 export { start }
+

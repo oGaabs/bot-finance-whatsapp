@@ -1,5 +1,7 @@
 import qrcode from 'qrcode-terminal'
 import whatsappWebPkg from 'whatsapp-web.js'
+import { getLogger } from './utils/logger.js'
+const logger = getLogger('whatsapp')
 
 const { Client, LocalAuth } = whatsappWebPkg
 
@@ -7,13 +9,13 @@ let client = null
 
 function getClient() {
   if (!client) {
-    console.log(`> Criando novo cliente WhatsApp...`)
+    logger.info('Criando novo cliente WhatsApp...')
     client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: { headless: true, args: ["--no-sandbox"] },
     })
 
-    console.log(`> Cliente WhatsApp criado! Verificando QR Code...`)
+    logger.info('Cliente WhatsApp criado! Verificando QR Code...')
     client.on("qr", (qr) => qrcode.generate(qr, { small: true }))   // When the client received QR-Code
   }
 
@@ -26,15 +28,14 @@ async function sendMessage(message, replyText) {
   const formatUser = `${message.rawData.notifyName} (${rawNumberTo})`
 
   if (chat.isGroup) {
-    console.log(`[GRUPO] Mensagem no grupo "${chat.name}"\n "${formatUser}": ${message.body}`)
-
-    console.log(`[GRUPO] Enviando resposta para o grupo "${chat.name} para ${formatUser}": ${replyText}`)
+    logger.info({ group: chat.name, from: formatUser, body: message.body }, 'Mensagem de grupo recebida')
+    logger.info({ group: chat.name, to: formatUser, reply: replyText }, 'Enviando resposta para grupo')
     await chat.sendMessage(replyText)
     return
   }
 
-  console.log(`[CHAT] Mensagem de "${rawNumberTo}": ${message.body}`)
-  console.log(`[REPLY-${formatUser}] Enviando resposta": ${replyText}`)
+  logger.info({ to: rawNumberTo, body: message.body }, 'Mensagem direta recebida')
+  logger.info({ to: rawNumberTo, reply: replyText }, 'Enviando resposta direta')
 
   await client.sendMessage(rawNumberTo, replyText)
 }
