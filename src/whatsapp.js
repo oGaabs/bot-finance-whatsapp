@@ -52,10 +52,6 @@ async function sendRaw(to, text) {
   if (!client)
     throw new Error('Cliente WhatsApp não inicializado')
 
-  if (!to.endsWith('@c.us')) {
-    to += '@c.us'
-  }
-
   try {
     const formatted = formatOutgoingMessage(text, { context: to.endsWith('@g.us') ? 'group' : 'direct' })
 

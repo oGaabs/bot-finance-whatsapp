@@ -21,7 +21,7 @@ function parseInlineToolCalls(content) {
 
     const match = /^tool_call:([a-zA-Z0-9_]+)\((.*)\)$/.exec(line)
 
-    if (!match) 
+    if (!match)
       continue
 
     const fnName = match[1]
@@ -34,7 +34,7 @@ function parseInlineToolCalls(content) {
       inside.split(',').forEach(pair => {
         const [k, vRaw] = pair.split('=').map(s => s && s.trim())
 
-        if (!k) 
+        if (!k)
           return
 
         let v = vRaw
